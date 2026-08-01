@@ -1,9 +1,6 @@
 {
   "name": "familyhub-api",
   "private": true,
-  "prisma": {
-    "schema": "../prisma/schema.prisma"
-  },
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "prisma generate && tsc",
