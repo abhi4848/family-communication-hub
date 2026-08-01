@@ -3,8 +3,8 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "prisma generate && tsc",
-    "postinstall": "prisma generate",
+    "build": "prisma generate --schema ../../prisma/schema.prisma && tsc",
+    "postinstall": "prisma generate --schema ../../prisma/schema.prisma",
     "start": "node dist/server.js"
   },
   "dependencies": {
