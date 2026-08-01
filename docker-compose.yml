@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: familyhub-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: familyhub
+      POSTGRES_USER: family
+      POSTGRES_PASSWORD: family_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - familyhub_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U family -d familyhub"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  familyhub_pgdata:

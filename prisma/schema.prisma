@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PARENT
+  KID
+}
+
+enum MessageType {
+  TEXT
+  VOICE
+  QUICK_ACTION
+  AI
+}
+
+enum AuditAction {
+  LOGIN
+  LOGOUT
+  MESSAGE_SENT
+  MESSAGE_READ
+  QUICK_ACTION
+  VOICE_SENT
+  AI_QUESTION
+  AI_FORWARDED
+  PUSH_SUBSCRIBED
+}
+
+model Family {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  members   User[]
+  messages  Message[]
+  audits    AuditLog[]
+}
+
+model User {
+  id           String             @id @default(cuid())
+  familyId     String
+  family       Family             @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  name         String
+  email        String             @unique
+  passwordHash String
+  role         Role
+  createdAt    DateTime           @default(now())
+  messages     Message[]          @relation("Sender")
+  reads        MessageRead[]
+  pushSubs     PushSubscription[]
+  audits       AuditLog[]
+
+  @@index([familyId])
+}
+
+model Message {
+  id          String      @id @default(cuid())
+  familyId   String
+  family      Family      @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  senderId    String
+  sender      User        @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
+  type        MessageType
+  body        String?
+  mediaUrl    String?
+  quickAction String?
+  createdAt   DateTime    @default(now())
+  reads       MessageRead[]
+
+  @@index([familyId, createdAt])
+}
+
+model MessageRead {
+  messageId String
+  userId    String
+  readAt    DateTime @default(now())
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([messageId, userId])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String      @id @default(cuid())
+  familyId  String
+  family    Family      @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    AuditAction
+  metadata  Json?
+  createdAt DateTime    @default(now())
+
+  @@index([familyId, createdAt])
+}
